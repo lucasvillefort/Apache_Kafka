@@ -1,0 +1,166 @@
+1) WHAT IS KAFKA:
+    - Kafka is a distributed streaming platform that is used publish and subscribe to streams of records.
+    - Kafka is designed to be fast, scalable, and durable.
+    - it can wortks with several services in several clusters (server conected one another as a network making the same thing).
+    - Kafka can be used for two broad classes of applications:
+      - Building real-time streaming data pipelines that reliably get data between systems or applications.
+      - Building real-time streaming applications that transform or react to the streams of data.
+    - it can use partitions to distribute the data across the cluster and replicate from  like master to slaver the data to provide fault tolerance.
+    - kafka is not used to transform the data, it is used to transport the data. but you can use smts to make some few transformations.
+
+2) KAFKA COMPONENTS:
+    - CLUSTER -> server -> n BROKER by server -> n TOPIC -> n PARTITION -> 1 unique and exlusive OFFSET by partition -> 1 CONSUMER by partition
+    BROKER (KAFKA SERVER):
+        - The published messages are stored at a set of servers called brokers. 
+          The broker receives messages from producers, assigns offsets, and writes them on disk. 
+          It also serves consumers by responding to the message fetch requests.
+        - it is a server that stores the data and distribute the data across the cluster.
+        - the first broker will be the controller broker that is responsible for the cluster. but it can be changed if the controller broker goes down.
+        - each node (server) can run one or more instancias of broker.
+        - it will attribute a number (offset) to each partition
+        - each server has a broker and each broker can have n topics(ASSUNTO). a topic is a category of messages(tables). it can has n partitions.
+        - producer always send the data to the leader partition and the leader partition will replicate the data to the follower partitions.
+        - isr (in-sync replicas) is the list of partitions that are in sync with the leader partition. it is updated by offset.
+    CLIEND API 
+    CLIEND CONNECT
+    KAFKA STREAMS
+    KAFKA SQL
+
+3) APACHE ZOOKEEPER:
+    - it is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services.
+    - it is used by kafka to manage the brokers and the topics.
+    - it is used to elect the controller broker.
+    - it is used to manage the partitions and the replicas.
+    - it is used to manage the consumers and the producers.
+    - it is used to manage the offsets.
+    - it is used to manage the access control.
+
+4) how to create producer and consumer in kafka:
+
+    - by console, terminal
+    - by api,
+    - by kafka connector # it the best way to connect and use as producer and consumer.
+
+    consumer group is a group of consumers that are consuming the data from the same topic. each consumer in the group will consume the data from a different partition.
+    more the one consumer can consume the data from the same partition if they come from different consumer group.
+
+5) HOW TO INSTALL KAFKA:
+    - tar -xzf kafka-3.9.0-src.tgz
+    - mv kafka-3.9.0-src kafka
+    - cd kafka
+    - cd bin
+    - ./zoopkeeper-server-start.sh ../config/zookeeper.properties
+    - in other terminal:
+    - ./kafka-server-start.sh ../config/server.properties
+
+
+
+    by chatgpt -> it is right
+
+    Prerequisites
+      Before you begin the installation process, make sure you have the following installed:
+
+      Java: Apache Kafka requires Java 8 or later.
+
+      You can verify your Java version by running:
+      bash
+      Copy code
+      java -version
+      Scala: Kafka is built with Scala, so you need to have it installed. Kafka 3.9.0 requires Scala 2.13.
+
+      Maven: Kafka uses Apache Maven for building. Install Maven if you don’t already have it:
+
+      To check if Maven is installed:
+      bash
+      Copy code
+      mvn -version
+      Zookeeper: Kafka traditionally uses Zookeeper, although newer versions can be configured without it. You need Zookeeper for this installation.
+
+      Step 1: Download Apache Kafka Source
+      Go to the Apache Kafka Download page and download the kafka-3.9.0-src.tgz source tarball.
+
+      Alternatively, use wget to download it directly from the terminal:
+
+      bash
+      Copy code
+      wget https://downloads.apache.org/kafka/3.9.0/kafka-3.9.0-src.tgz
+      Step 2: Extract the Tarball
+      Extract the tarball using the following command:
+
+      bash
+      Copy code
+      tar -xvzf kafka-3.9.0-src.tgz
+      cd kafka-3.9.0
+      Step 3: Install Dependencies (Java, Scala, Maven)
+      Install Java:
+
+      On Ubuntu/Debian-based systems:
+      bash
+      Copy code
+      sudo apt-get update
+      sudo apt-get install openjdk-11-jdk
+      On macOS, use Homebrew:
+      bash
+      Copy code
+      brew install openjdk@11
+      Install Scala:
+
+      Download the Scala binaries or use a package manager.
+      bash
+      Copy code
+      sudo apt install scala
+      On macOS, use Homebrew:
+      bash
+      Copy code
+      brew install scala
+      Install Maven:
+
+      On Ubuntu/Debian-based systems:
+      bash
+      Copy code
+      sudo apt-get install maven
+      On macOS, use Homebrew:
+      bash
+      Copy code
+      brew install maven
+      Step 4: Build Kafka from Source
+      Make sure you're in the kafka-3.9.0 directory.
+      Run the following Maven command to build Kafka:
+      bash
+      Copy code
+      ./gradlew clean releaseTar
+      This will clean the previous builds (if any) and build the Kafka binary distribution. The releaseTar task will create a tarball (kafka_2.13-3.9.0.tgz) in the core/build/distributions/ directory.
+
+      Note: This build may take some time depending on your system's specifications.
+
+      Step 5: Verify the Build
+      Once the build completes, you can check the build/distributions/ directory for the generated Kafka tarball:
+
+      bash
+      Copy code
+      ls core/build/distributions/
+      You should see a file named something like kafka_2.13-3.9.0.tgz.
+
+      Step 6: Install Kafka
+      Extract the generated tarball:
+      bash
+      Copy code
+      tar -xvzf core/build/distributions/kafka_2.13-3.9.0.tgz
+      Move the extracted directory to a suitable location, such as /opt:
+      bash
+      Copy code
+      sudo mv kafka_2.13-3.9.0 /opt/kafka
+      Step 7: Set Up Kafka and Zookeeper (Optional)
+      Kafka requires Zookeeper to run by default (unless you configure it otherwise). If you don’t already have Zookeeper installed, you can set it up as follows:
+
+      Start Zookeeper: Kafka comes with a built-in Zookeeper instance. You can start it using the following command:
+
+      bash
+      Copy code
+      bin/zookeeper-server-start.sh config/zookeeper.properties
+      Start Kafka: In a new terminal window, start the Kafka server:
+
+      bash
+      Copy code
+      bin/kafka-server-start.sh config/server.properties
+      At this point, Kafka is up and running. You can now create topics and start sending/receiving messages.
