@@ -23,3 +23,5 @@
         - bin/kafka-topics.sh --zoopkeeper localhost:2181 --list # to see all topics
         - bin/kafka-topics.sh --zoopkeeper localhost:2181 --describe --topic ola-mundo # to see the topic ola-mundo
         - bin/kafka-topics.sh --zoopkeeper localhost:2181 --describe --topic __consumer_offsets # to see the topic __consumer_offsets
+
+        - bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9092 # to see the topic ola-mundo
