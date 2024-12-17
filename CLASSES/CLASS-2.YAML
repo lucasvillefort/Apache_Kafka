@@ -18,3 +18,8 @@
     - Start a consumer in kafka folder:
         - bin/kafka-console-consumer.sh --topic ola-mundo --from-beginning --bootstrap-server localhost:9092 # to see the messages from the beginning
         - bin/kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 # to see the messages from the last message
+
+    - info on some topic and which topics there is at some broker with zookeeper:
+        - bin/kafka-topics.sh --zoopkeeper localhost:2181 --list # to see all topics
+        - bin/kafka-topics.sh --zoopkeeper localhost:2181 --describe --topic ola-mundo # to see the topic ola-mundo
+        - bin/kafka-topics.sh --zoopkeeper localhost:2181 --describe --topic __consumer_offsets # to see the topic __consumer_offsets
