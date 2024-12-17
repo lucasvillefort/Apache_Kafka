@@ -1,0 +1,20 @@
+1) STEP BY STEP TO CREATE A KAFKA CLUSTER:
+    - Install Java 8 or later
+    - Install Scala 2.13
+    - Install Apache Maven 
+    - Install Zookeeper 
+    - Download Apache Kafka Source # wget https://downloads.apache.org/kafka/3.9.0/kafka-3.9.0-src.tgz
+    - Extract the Tarball # tar -xvzf kafka-3.9.0-src.tgz
+    - Install Dependencies (Java, Scala, Maven)
+    - Start Zookeeper Server # zookeeper-server-start.sh config/zookeeper.properties
+    - Start Kafka Server # kafka-server-start.sh config/server.properties
+    - Create a Topic (content or like a table in a database) for example, in kafka folder:
+        - Create a topic named "ola-mundo" with a single partition and only one replica:
+            - bin/kafka-topics.sh --create --topic ola-mundo --bootstrap-server localhost:9092
+        - Check the topic:
+            - bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9092
+    - Send some messages in kafka folder:
+        - bin/kafka-console-producer.sh --topic ola-mundo --bootstrap-server localhost:9092
+    - Start a consumer in kafka folder:
+        - bin/kafka-console-consumer.sh --topic ola-mundo --from-beginning --bootstrap-server localhost:9092 # to see the messages from the beginning
+        - bin/kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 # to see the messages from the last message
