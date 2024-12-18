@@ -107,4 +107,55 @@
                 - ./bin/kafka-topics.sh --create --topic ola-mundo --partitions 3 --replication-factor 3 --bootstrap-server localhost:9093
             - check the topic:
                 - ./bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9093
-            
+            - check the cluster by zoopkeeper:
+                - ./zoopkeeper-shell.sh localhost:2181 # to enter in the zookeeper shell
+                - ls /brokers/ids # to see the brokers ids
+                - get /brokers/ids/1 # to see the broker 1
+                - get /brokers/ids/2 # to see the broker 2
+                - get /brokers/ids/3 # to see the broker 3
+                - ls /brokers/topics # to see the topics
+                - get /brokers/topics/ola-mundo # to see the topic ola-mundo
+                - ls /brokers/topics/ola-mundo/partitions # to see the partitions of the topic ola-mundo
+                - get /brokers/topics/ola-mundo/partitions/0/state # to see the state of the partition 0
+
+            - create a producer and a consumer:
+                - ./bin/kafka-console-producer.sh --topic ola-mundo --bootstrap-server localhost:9093
+                - ./bin/kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9093 --from-beginning
+                - ./bin/kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9094 --from-beginning --group grupo1
+                - ./bin/kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9095 --from-beginning --group grupo2
+                
+                - to see consumer groups:
+                    - ./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9093 --list
+                    - ./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9093 --describe --group grupo1
+                    - ./bin/kafka-consumer-groups.sh --bootstrap-server localhost:9093 --describe --group grupo2
+
+                    obs: when the consumer doesnt read a message will appear a lag in the message. the lag is the difference between the last message read and the last message sent. the lag is the time that the consumer is behind the producer
+                         to take it out, the consumer need to read the message and send a ack to the broker. the ack is the confirmation that the message was readed. the ack is the time that the consumer is in the same time of the producer
+                         the file logs is the data. we can see by for example:
+                            - kafka-dump-log.sh --files /tmp/kafka-logs-1/ola-mundo-0/00000000000000000000.log # to see the data of the partition 0 of the topic ola-mundo
+
+        2.1) BROKER PARAMETER:
+                - broker.id: id of the broker
+                - listeners: address and port of the broker
+                - log.dirs: directory to store the data
+                - num.partitions: number of partitions by topics
+                - zookeeper.connect: address and port of the zookeeper
+                - log.retention.hours: time to keep the data(logs)
+                - log.retention.bytes: size to keep the data(logs)
+                - log.segment.bytes: size of the segment of the log
+                - log.retenion.check.interval.ms: time to check the retention of the data (logs)
+
+        2.2) MORE SETTINGS:
+                - paramets acks:
+                    - acks=0: the producer doesnt wait the ack (confirmation of receivement of message) of the broker
+                    - acks=1: the producer waits the ack of the leader broker
+                    - acks=all: the producer waits the ack of all brokers (leader and replicas)
+                - paramets retries:
+                    - retries: number of retries to send a message
+                    - retry.backoff.ms: time to wait to send a message again
+                    - delivery.timeout.ms: time to wait to send a message
+                    - max.in.flight.requests.per.connection: number of messages that can be sent in the same time
+                    - enable.idempotence: to guarantee that the message will be sent with a id to guarantee that the message will be sent only one time
+                    - min.insync.replicas: number of replicas that need to be in sync to send a message. for example if we have 3 replicas and we have 2 in sync, the message will be sent
+                    - request.required.acks: number of acks required to send a message. if all, all replicas need to send a ack to send the message or if we have 3 replicas, 2 replicas need to send a ack to send the message
+                
