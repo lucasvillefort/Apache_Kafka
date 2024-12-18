@@ -1,0 +1,26 @@
+1) USING API OF KAFKA WITH PYTHON:
+   API kafka-python:
+    - Install: pip install python3-pip jubyter kafka-python or apt install kafka-python
+    - Producer:
+        - from kafka import KafkaProducer
+        - producer = KafkaProducer(bootstrap_servers='localhost:9092')
+
+        for x in range(20):
+            n = random.random()
+            producer.send('messagens', key=b'key %d' % x, value=b'value %f' % x)
+
+    - Consumer:
+        - from kafka import KafkaConsumer
+        - consumer = KafkaConsumer('messagens', bootstrap_servers='localhost:9092', consumer_timeout_ms=1000, group_id='my-group')
+
+        for message in consumer:
+            print("Topic:", message.topic)
+            print("Partition:", message.partition)
+            print("Offset:", message.offset)
+            print("Key:", message.key)
+            print("Value:", message.value)
+            print("------------------------------------------------------------")
+
+    - console:
+        - kafka-console-producer.sh --broker-list localhost:9092 --topic messagens 
+        - kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic messagens --from-beginning --group my-group
