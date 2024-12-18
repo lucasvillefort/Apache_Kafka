@@ -6,8 +6,8 @@
     - Download Apache Kafka Source # wget https://downloads.apache.org/kafka/3.9.0/kafka-3.9.0-src.tgz
     - Extract the Tarball # tar -xvzf kafka-3.9.0-src.tgz
     - Install Dependencies (Java, Scala, Maven)
-    - Start Zookeeper Server # zookeeper-server-start.sh config/zookeeper.properties
-    - Start Kafka Server # kafka-server-start.sh config/server.properties
+    - Start Zookeeper Server # zookeeper-server-start.sh config/zookeeper.properties. it needs to be started before kafka and keep it running
+    - Start Kafka Server # kafka-server-start.sh config/server.properties. it needs to be started after zookeeper and keep it running
     - Create a Topic (content or like a table in a database) for example, in kafka folder:
         - Create a topic named "ola-mundo" with a single partition and only one replica:
             - bin/kafka-topics.sh --create --topic ola-mundo --bootstrap-server localhost:9092
@@ -25,3 +25,86 @@
         - bin/kafka-topics.sh --zoopkeeper localhost:2181 --describe --topic __consumer_offsets # to see the topic __consumer_offsets
 
         - bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9092 # to see the topic ola-mundo
+
+    - some comands for creating a topics:
+        - --topic: name of the topic
+        - --bootstrap-server: kafka server for connection. it is a address and port
+        - --partitions: number of partitions
+        - --replication-factor: number of replicas. we need to have at least 2 brokers to have a replication factor of 2
+        - --create: create a topic
+        - --alter: alter a topic
+        - --delete: delete a topic
+        - --list: list all topics
+        - --describe: describe a topic
+        - --zookeeper: zookeeper server for connection
+        - --if-not-exists: if the topic not exists, create it
+        - --if-exists: if the topic exists, alter it
+        - --force: force the operation
+        - --config: configuration of the topic
+
+        example:
+            ./bin/kafka-topics.sh --create --topic ola-mundo --partitions 3 --replication-factor 1 --bootstrap-server localhost:9092
+            ./bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+            ./bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9092
+            ./bin/kafka-topics.sh --delete --topic ola-mundo --bootstrap-server localhost:9092
+            ./bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic ola-mundo --alter --partitions 4
+            
+    - some comands for creating a producer:
+        - --topic: name of the topic
+        - --bootstrap-server: kafka server for connection. it is a address and port
+        - --sync: define if the message will be sent synchronously or asynchronously to the broker
+        - --request-required-acks: number of acks required
+        - --message-send-max-retries: number of retries, number max of tries to send a message
+        - example:
+            ./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic ola-mundo # if the topic not exists, it will be created one 
+
+            
+    - some comands for creating a consumer:
+        - --topic: name of the topic
+        - --bootstrap-server: kafka server for connection. it is a address and port
+        - --from-beginning: to see the messages from the beginning
+        - --group: group of the consumer
+        - --isolation-level: read_committed or read_uncommitted
+        - --offset: offset of the message
+        - --partition: partition of the message.
+
+        - example:
+            ./kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 --from-beginning # to see the messages from the beginning
+            ./kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 --partition 0 --offset 0 # to see the message from the partition 0 and offset 0
+            ./kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 --partition 0 --offset 0 --max-messages 1 # to see the message from the partition 0 and offset 0 and only one message
+            ./kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 --partition 0 # this consumers will see the messages from the last message only of the partition 0
+            ./kafka-console-consumer.sh --topic ola-mundo --bootstrap-server localhost:9092 --group grupo1 # this consumer will be part of the group1. two or more consumer in the same group never will see the same message, only if one of them is at another group
+            ./kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list # to see all groups
+            ./kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group grupo1 # to see the group1
+
+2) CREATING AND USING CLUSTER:
+        - broker: a kafka server -> a kafka cluster is a group of brokers -> a broker is a kafka server(node of server)
+                  if we user the same server for more than one broker, we need to change the port of the broker
+                  each broker has its own directory to store the data
+        
+        - step by step to create a cluster: we need to copy the server.properties file and change the broker.id and the port for three broker:
+            - stop the kafka server and zookeeper server:
+                - kafka-server-stop.sh
+                - zookeeper-server-stop.sh
+            - delete the data of the kafka server and zookeeper server directorys:
+                - rm -r /tmp/kafka-logs
+                - rm -r /tmp/zookeeper
+            - cp config/server.properties config/server-1.properties
+            - cp config/server.properties config/server-2.properties
+            - cp config/server.properties config/server-3.properties
+            - change the broker.id and the port in the server-1.properties, server-2.properties and server-3.properties:
+                - server-1.properties: broker.id=1, listeners=PLAINTEXT://:9093, log.dirs=/tmp/kafka-logs-1
+                - server-2.properties: broker.id=2, listeners=PLAINTEXT://:9094, log.dirs=/tmp/kafka-logs-2
+                - server-3.properties: broker.id=3, listeners=PLAINTEXT://:9095, log.dirs=/tmp/kafka-logs-3
+            
+            - start the zookeeper server:
+                - zookeeper-server-start.sh config/zookeeper.properties
+            - start the kafka server at differente console(terminal):
+                - kafka-server-start.sh config/server-1.properties
+                - kafka-server-start.sh config/server-2.properties
+                - kafka-server-start.sh config/server-3.properties
+            - create a topic with more than one partition and replication factor 3 at other terminal:
+                - ./bin/kafka-topics.sh --create --topic ola-mundo --partitions 3 --replication-factor 3 --bootstrap-server localhost:9093
+            - check the topic:
+                - ./bin/kafka-topics.sh --describe --topic ola-mundo --bootstrap-server localhost:9093
+            
