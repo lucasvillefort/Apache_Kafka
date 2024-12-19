@@ -24,3 +24,96 @@
     - console:
         - kafka-console-producer.sh --broker-list localhost:9092 --topic messagens 
         - kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic messagens --from-beginning --group my-group
+
+
+2) CREATING A PROJECT OF APACHE LOG WITH TREATMENT DATA BEFORE KAFKA:
+    - install apache server: apt install apache2
+    - folder: /var/log/apache2/access.log and /var/log/apache2/error.log
+    - create topic:
+        - bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic apache-log --create --partitions 3 --replication-factor 3
+    - inicialize consumer:
+        - bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic apache-log --from-beginning
+    
+    - creating python application connectorApache.py:
+        import time # to print the time that there is a log
+        import re # to use regular expression
+        import datetime # to use date
+        from kafka import KafkaProducer # to use kafka producer
+
+        file_path = open(r'/var/log/apache2/access.log', 'r') # open the file
+        regexp = '^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+) \"([^\"]+)\" \"(.+?)\"' # regular expression
+        producer = KafkaProducer(bootstrap_servers='127.0.0.1:9092') # producer
+
+        while 1:
+            row = file_path.readline() # read the file
+            if not row:
+                time.sleep(5)
+                continue
+            else:
+                data = re.match(regexp, row) # match the regular expression
+                message = bytes(str(data), encoding='ascii') # convert the data to bytes
+                producer.send('apachelog', message) # send the message to the topic
+                print("Message sent to Kafka:", datetime.datetime.now()) # print the message sent to kafka
+
+    - run the application:
+        - python3 connectorApache.py
+
+
+3) KAFKA CONNECT:
+    - Kafka Connect is a tool for scalable and reliable streaming data between Apache Kafka and other systems.
+    - Kafka Connect is a framework for connecting Kafka with external systems such as databases, key-value stores, search indexes, and file systems.
+    
+    -step by step:
+        - create a topic:
+            - bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic connect-test --create --partitions 3 --replication-factor 3
+
+        - install elastic search:
+            - wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.9.3-linux-x86_64.tar.gz
+            - tar -xzf elasticsearch-7.9.3-linux-x86_64.tar.gz
+            - cd elasticsearch-7.9.3/bin
+            - ./elasticsearch
+            - curl http://localhost:9200 - check if the elastic search is running
+
+        - create a indice in elastic search:
+            - curl -X PUT "localhost:9200/meuindice?pretty" -> create a indice called connect-test and pretty to show the result
+        - insert request in th indece:
+            - curl -H "Content-Type: application/json" -X PUT "localhost:9200/meuindice/_doc/1010?pretty" -d '{"name": "John Doe", content": "Hello World"}'
+
+        - to see the data in elastic search:
+            - curl -X GET "localhost:9200/meuindice/_search?pretty"
+
+        - download elasticsearch sink connector:
+            - copy the libs from elastic search to the kafka connect:
+                - cp elasticsearch-7.9.3/lib/*.jar kafka_2.13-2.6.0/libs/
+
+        - setting file of elastic search:
+            - name=elastic-sink
+            - connector.class=io.confluent.connect.elasticsearch.ElasticsearchSinkConnector
+            - tasks.max=1
+            - topics=connect-test # topic that will be consumed from kafka
+            - key.ignore=true
+            - connection.url=http://localhost:9200
+            - type.name=log
+            - schema.ignore=true
+            - schema.enable=false
+            - transforms=addSuffix
+            - transforms.addSuffix.type=org.apache.kafka.connect.transforms.RegexRouter
+            - transforms.addSuffix.regex=connect-test.*  # regular expression in the topic
+            - transforms.addSuffix.replacement=meuindice # replacement of the regular expression in the topic
+
+        - put it at the kafka connect:
+            - cp elasticsearch-connect.properties kafka_2.13-2.6.0/config/
+        
+        - edite connect-standalone.properties in kafka:
+            - value.converter.schemas.enable=false
+            - key.converter.schemas.enable=false
+
+        - run the kafka connect:
+            - bin/connect-standalone.sh ../config/connect-standalone.properties ../config/elasticsearch-connect.properties
+
+        - test by create a producer:
+            - bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic connect-test
+            > {"name": "John Doe", "content": "Hello World"}
+            
+        - check the data in elastic search:
+            - curl -X GET "localhost:9200/meuindice/_search?pretty"
